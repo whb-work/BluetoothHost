@@ -14,6 +14,7 @@
 #include <stdarg.h>  //va_start(), va_end()
 #include <unistd.h> //pipe()
 #include <string.h>
+#include <stdlib.h> //atoi()
 
 /*
 *my_debug: 调试函数
@@ -106,6 +107,7 @@ st:
 	printf("\tc\t蓝牙触摸控制(BTC)\n");
 	printf("\td\t电话本和通话记录\n");
 	printf("\te\t其他\n");
+	printf("\tq\t退出\n");
 	printf("\tm\t查看选项\n");
 cont:
 	printf("Command (m for help): ");
@@ -137,6 +139,10 @@ cont:
 		{
 			other(buf);
 		}
+		else if(opt == 'q') //其他
+		{
+			return;
+		}
 		else if(opt == '\n') //其他
 		{
 			goto cont;
@@ -159,43 +165,37 @@ int hfp(char *buf)
 	int a;
 	FILE *fd;
 	int i = 0;
-	int n = 0;
 	char buff[128];
-	cmd_inf p[CMD_TYPE][TYPE_NO];
+	cmd_inf p[CMD_NO];
 
-	if((fd = fopen("../cmd_inf.txt", "r")) == NULL)
+	if((fd = fopen("cmd_inf.txt", "r")) == NULL)
 	{
 		perror("open error");
 		return -1;
 	}
 
-	for(i = 0; i < CMD_TYPE; i++)
+	for(i = 0; i < CMD_NO; i++)
 	{
-		for(n = 0; n < TYPE_NO; n++)
+		if(fgets(buff, 64, fd) > 0)
 		{
-			if(fgets(buff, 64, fd) > 0)
-			{
-				sscanf(buff, "%d%d%s%s", &p[i][n].id, &p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
-				//debug_inf("buff |%s\n", buff);
-			}
+			sscanf(buff, "%d%s%s", &p[i].id, p[i].cmd, p[i].cmd_inf);
+			debug_inf("buff |%s\n", buff);
 		}
 	}
 
 	fclose(fd);
 
 	printf("Command action\n");
-	i = HFP_TYPE;
 	printf("\tID\tCMD\t说明\n");
 	printf("-----------------------------------------------------------\n");
-	for(n = 0; n < HFP_NO; n++)
+	for(i = HFP_BASIC; i < HFP_BASIC + HFP_NO; i++)
 	{
-		printf("\t%d\t%s\t%s\n", p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
+		printf("\t%d\t%s\t%s\n", p[i].id, p[i].cmd, p[i].cmd_inf);
 	}
 	printf("\t0\t查看选项\n");
 
 	while(1)
 	{
-		i = HFP_TYPE;
 		printf("Command ID(0 for help): ");
 		scanf("%d", &a);
 		while(getchar() != '\n');
@@ -205,19 +205,19 @@ int hfp(char *buf)
 			printf("Command action\n");
 			printf("\tID\tCMD\t说明\n");
 			printf("-----------------------------------------------------------\n");
-			for(n = 0; n < HFP_NO; n++)
+			for(i = HFP_BASIC; i < HFP_BASIC + HFP_NO; i++)
 			{
-				printf("\t%d\t%s\t%s\n", p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
+				printf("\t%d\t%s\t%s\n", p[i].id, p[i].cmd, p[i].cmd_inf);
 			}
 			printf("\t0\t查看选项\n");
 		}
 		else
 		{
-			if(a < (HFP_NO + 1) && a > 0)
+			if(a < (HFP_BASIC + HFP_NO + 1) && a > HFP_BASIC)
 			{
 				memset(buf, 0, CMD_SIZE);
-				strcpy(buf, p[i][a - 1].cmd);
-				if(a == 10)
+				strcpy(buf, p[a - 1].cmd);
+				if(a == 12)
 				{
 					memset(buff, 0, 128);
 					printf("please input number: ");
@@ -248,41 +248,36 @@ int a2dp(char *buf)
 	int i = 0;
 	int n = 0;
 	char buff[128];
-	cmd_inf p[CMD_TYPE][TYPE_NO];
+	cmd_inf p[CMD_NO];
 
-	if((fd = fopen("../cmd_inf.txt", "r")) == NULL)
+	if((fd = fopen("cmd_inf.txt", "r")) == NULL)
 	{
 		perror("open error");
 		return -1;
 	}
 
-	for(i = 0; i < CMD_TYPE; i++)
+	for(i = 0; i < CMD_NO; i++)
 	{
-		for(n = 0; n < TYPE_NO; n++)
+		if(fgets(buff, 64, fd) > 0)
 		{
-			if(fgets(buff, 64, fd) > 0)
-			{
-				sscanf(buff, "%d%d%s%s", &p[i][n].id, &p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
-				//debug_inf("buff |%s\n", buff);
-			}
+			sscanf(buff, "%d%s%s", &p[i].id, p[i].cmd, p[i].cmd_inf);
+			//debug_inf("buff |%s\n", buff);
 		}
 	}
 
 	fclose(fd);
 
 	printf("Command action\n");
-	i = A2DP_TYPE;
 	printf("\tID\tCMD\t说明\n");
 	printf("-----------------------------------------------------------\n");
-	for(n = 0; n < A2DP_NO; n++)
+	for(i = A2DP_BASIC; i < A2DP_BASIC + A2DP_NO; i++)
 	{
-		printf("\t%d\t%s\t%s\n", p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
+		printf("\t%d\t%s\t%s\n", p[i].id, p[i].cmd, p[i].cmd_inf);
 	}
 	printf("\t0\t查看选项\n");
 
 	while(1)
 	{
-		i = A2DP_TYPE;
 		printf("Command ID(0 for help): ");
 		scanf("%d", &a);
 		while(getchar() != '\n');
@@ -292,18 +287,18 @@ int a2dp(char *buf)
 			printf("Command action\n");
 			printf("\tID\tCMD\t说明\n");
 			printf("-----------------------------------------------------------\n");
-			for(n = 0; n < A2DP_NO; n++)
+			for(i = A2DP_BASIC; i < A2DP_BASIC + A2DP_NO; i++)
 			{
-				printf("\t%d\t%s\t%s\n", p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
+				printf("\t%d\t%s\t%s\n", p[i].id, p[i].cmd, p[i].cmd_inf);
 			}
 			printf("\t0\t查看选项\n");
 		}
 		else
 		{
-			if(a < (A2DP_NO + 1) && a > 0)
+			if(a < (A2DP_BASIC + A2DP_NO + 1) && a > A2DP_BASIC)
 			{
 				memset(buf, 0, CMD_SIZE);
-				strcpy(buf, p[i][a - 1].cmd);
+				strcpy(buf, p[a - 1].cmd);
 				debug_inf("Leave A2DP, In Home\n");
 				break;
 			}
@@ -326,40 +321,36 @@ int phone(char *buf)
 	int i = 0;
 	int n = 0;
 	char buff[128];
-	cmd_inf p[CMD_TYPE][TYPE_NO];
+	cmd_inf p[CMD_NO];
 
-	if((fd = fopen("../cmd_inf.txt", "r")) == NULL)
+	if((fd = fopen("cmd_inf.txt", "r")) == NULL)
 	{
 		perror("open error");
 		return -1;
 	}
 
-	for(i = 0; i < CMD_TYPE; i++)
+	for(i = 0; i < CMD_NO; i++)
 	{
-		for(n = 0; n < TYPE_NO; n++)
+		if(fgets(buff, 64, fd) > 0)
 		{
-			if(fgets(buff, 64, fd) > 0)
-			{
-				sscanf(buff, "%d%d%s%s", &p[i][n].id, &p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
-				//debug_inf("buff |%s\n", buff);
-			}
+			sscanf(buff, "%d%s%s", &p[i].id, p[i].cmd, p[i].cmd_inf);
+			//debug_inf("buff |%s\n", buff);
 		}
 	}
 
 	fclose(fd);
 
 	printf("Command action\n");
-	i = PHONE_TYPE;
 	printf("\tID\tCMD\t说明\n");
-	for(n = 0; n < PHONE_NO; n++)
+	printf("-----------------------------------------------------------\n");
+	for(i = PHONE_BASIC; i < PHONE_BASIC + PHONE_NO; i++)
 	{
-		printf("\t%d\t%s\t%s\n", p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
+		printf("\t%d\t%s\t%s\n", p[i].id, p[i].cmd, p[i].cmd_inf);
 	}
 	printf("\t0\t查看选项\n");
 
 	while(1)
 	{
-		i = PHONE_TYPE;
 		printf("Command ID(0 for help): ");
 		scanf("%d", &a);
 		while(getchar() != '\n');
@@ -368,19 +359,20 @@ int phone(char *buf)
 		{
 			printf("Command action\n");
 			printf("\tID\tCMD\t说明\n");
-			for(n = 0; n < PHONE_NO; n++)
+			printf("-----------------------------------------------------------\n");
+			for(i = PHONE_BASIC; i < PHONE_BASIC + PHONE_NO; i++)
 			{
-				printf("\t%d\t%s\t%s\n", p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
+				printf("\t%d\t%s\t%s\n", p[i].id, p[i].cmd, p[i].cmd_inf);
 			}
 			printf("\t0\t查看选项\n");
 		}
 		else
 		{
-			if(a < (PHONE_NO + 1) && a > 0)
+			if(a < (PHONE_BASIC + PHONE_NO + 1) && a > PHONE_BASIC)
 			{
 				memset(buf, 0, CMD_SIZE);
-				strcpy(buf, p[i][a - 1].cmd);
-				if(a == 1)
+				strcpy(buf, p[a - 1].cmd);
+				if(a == 46)
 				{
 				i_1:
 					memset(buff, 0, 128);
@@ -440,44 +432,40 @@ int other(char *buf)
 	printf("===> In OTHER\n");
 	int a;
 	FILE *fd;
+	cmd_inf p[CMD_NO];
 	int i = 0;
 	int n = 0;
 	char s[10];
 	char buff[128];
-	cmd_inf p[CMD_TYPE][TYPE_NO];
 
-	if((fd = fopen("../cmd_inf.txt", "r")) == NULL)
+	if((fd = fopen("cmd_inf.txt", "r")) == NULL)
 	{
 		perror("open error");
 		return -1;
 	}
 
-	for(i = 0; i < CMD_TYPE; i++)
+	for(i = 0; i < CMD_NO; i++)
 	{
-		for(n = 0; n < TYPE_NO; n++)
+		if(fgets(buff, 64, fd) > 0)
 		{
-			if(fgets(buff, 64, fd) > 0)
-			{
-				sscanf(buff, "%d%d%s%s", &p[i][n].id, &p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
-				//debug_inf("buff |%s\n", buff);
-			}
+			sscanf(buff, "%d%s%s", &p[i].id, p[i].cmd, p[i].cmd_inf);
+			//debug_inf("buff |%s\n", buff);
 		}
 	}
 
 	fclose(fd);
 
 	printf("Command action\n");
-	i = OTHER_TYPE;
 	printf("\tID\tCMD\t说明\n");
-	for(n = 0; n < OTHER_NO; n++)
+	printf("-----------------------------------------------------------\n");
+	for(i = OTHER_BASIC; i < OTHER_BASIC + OTHER_NO; i++)
 	{
-		printf("\t%d\t%s\t%s\n", p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
+		printf("\t%d\t%s\t%s\n", p[i].id, p[i].cmd, p[i].cmd_inf);
 	}
 	printf("\t0\t查看选项\n");
 
 	while(1)
 	{
-		i = OTHER_TYPE;
 		printf("Command ID(0 for help): ");
 		scanf("%d", &a);
 		while(getchar() != '\n');
@@ -486,20 +474,21 @@ int other(char *buf)
 		{
 			printf("Command action\n");
 			printf("\tID\tCMD\t说明\n");
-			for(n = 0; n < OTHER_NO; n++)
+			printf("-----------------------------------------------------------\n");
+			for(i = OTHER_BASIC; i < OTHER_BASIC + OTHER_NO; i++)
 			{
-				printf("\t%d\t%s\t%s\n", p[i][n].flag, p[i][n].cmd, p[i][n].cmd_inf);
+				printf("\t%d\t%s\t%s\n", p[i].id, p[i].cmd, p[i].cmd_inf);
 			}
 			printf("\t0\t查看选项\n");
 		}
 		else
 		{
-			if(a < (OTHER_NO + 1) && a > 0)
+			if(a < (OTHER_BASIC + OTHER_NO + 1) && a > OTHER_BASIC)
 			{
 				memset(buf, 0, CMD_SIZE);
-				strcpy(buf, p[i][a - 1].cmd);
+				strcpy(buf, p[a - 1].cmd);
 
-				if(a == 1)
+				if(a == 61)
 				{
 					memset(buff, 0, 128);
 					printf("please input Name(m = null): ");
@@ -510,7 +499,7 @@ int other(char *buf)
 						strncat(buf, buff, strlen(buff));
 					}
 				}
-				else if(a == 2)
+				else if(a == 62)
 				{
 					memset(buff, 0, 128);
 					printf("please input PIN(m = null): ");
@@ -521,7 +510,7 @@ int other(char *buf)
 						strncat(buf, buff, strlen(buff));
 					}
 				}
-				else if(a == 11)
+				else if(a == 71)
 				{
 					memset(buff, 0, 128);
 					printf("please input Vol(m = null): ");
@@ -549,157 +538,82 @@ int other(char *buf)
 /*
 *电话呼入
 */
-void phone_in(char *buf, char *cmdbuf)
+void phone_in(char *buf)
 {
-	char a;
 	printf("Call Me: number [%s]\n", buf + 2);
 	printf("Command action\n");
-	printf("\ta\t接听电话\n"); //CE
-	printf("\tb\t拒绝接听\n"); //CF
-	printf("\tc\t挂断电话\n"); //CG
-	printf("\td\t断开蓝牙免提\n"); //CD
-	printf("\te\t连接蓝牙免提\n"); //CC
-	printf("\tm\t查看选项\n");
-
-	while(1)
-	{
-		printf("(Call In)Command (m for help): ");
-		memset(cmdbuf, 0, CMD_SIZE);
-		scanf("%c", &a);
-		while(getchar() != '\n');
-
-		if('m' == a)
-		{
-			printf("Command action\n");
-			printf("\ta\t接听电话\n"); //CE
-			printf("\tb\t拒绝接听\n"); //CF
-			printf("\tc\t挂断电话\n"); //CG
-			printf("\td\t断开蓝牙免提\n"); //CD
-			printf("\te\t连接蓝牙免提\n"); //CC
-			printf("\tm\t查看选项\n");
-			continue;
-		}
-
-		else if('a' == a)
-		{
-			strcpy(cmdbuf, "CE");
-			break;
-		}
-		else if('b' == a)
-		{
-			strcpy(cmdbuf, "CF");
-			break;
-		}
-		else if('c' == a)
-		{
-			strcpy(cmdbuf, "CG");
-			break;
-		}
-		else if('d' == a)
-		{
-			strcpy(cmdbuf, "CD");
-			break;
-		}
-		else if('e' == a)
-		{
-			strcpy(cmdbuf, "CC");
-			break;
-		}
-	}
+	printf("\t3\t连接蓝牙免提\n"); //CC
+	printf("\t4\t断开蓝牙免提\n"); //CD
+	printf("\t5\t接听电话\n"); //CE
+	printf("\t6\t拒绝接听\n"); //CF
+	printf("\t7\t挂断电话\n"); //CG
+	printf("\t10\t切换蓝牙声音\n"); //CO
 }
 
 /*
 *电话呼出
 */
-void phone_out(char *buf, char *cmdbuf)
+void phone_out(char *buf)
 {
-	char a;
 	printf("Call Out: number [%s]\n", buf + 2);
 
 	printf("Command action\n");
-	printf("\ta\t挂断电话\n"); //CG
-	printf("\tb\t断开蓝牙免提\n"); //CD
-	printf("\tc\t连接蓝牙免提\n"); //CC
-	printf("\tm\t查看选项\n");
-
-	while(1)
-	{
-		printf("(Call Out)Command (m for help): ");
-		memset(cmdbuf, 0, CMD_SIZE);
-		scanf("%c", &a);
-		while(getchar() != '\n');
-
-		if('m' == a)
-		{
-			printf("Command action\n");
-			printf("\ta\t挂断电话\n"); //CG
-			printf("\tb\t断开蓝牙免提\n"); //CD
-			printf("\tc\t连接蓝牙免提\n"); //CC
-			printf("\tm\t查看选项\n");
-			continue;
-		}
-		else if('a' == a)
-		{
-			strcpy(cmdbuf, "CG");
-			break;
-		}
-		else if('b' == a)
-		{
-			strcpy(cmdbuf, "CD");
-			break;
-		}
-		else if('c' == a)
-		{
-			strcpy(cmdbuf, "CC");
-			break;
-		}
-	}
+	printf("\t3\t连接蓝牙免提\n"); //CC
+	printf("\t4\t断开蓝牙免提\n"); //CD
+	printf("\t7\t挂断电话\n"); //CG
+	printf("\t10\t切换蓝牙声音\n"); //CO
 }
 
 /*
 *当前通话
 */
-void call(char *buf, char *cmdbuf)
+void call(char *buf)
 {
-	char a;
 	printf("Call: number [%s]\n", buf + 2);
 
 	printf("Command action\n");
-	printf("\ta\t挂断电话\n"); //CG
-	printf("\tb\t断开蓝牙免提\n"); //CD
-	printf("\tc\t连接蓝牙免提\n"); //CC
-	printf("\tm\t查看选项\n");
-
-	while(1)
-	{
-		printf("(Call)Command (m for help): ");
-		memset(cmdbuf, 0, CMD_SIZE);
-		scanf("%c", &a);
-		while(getchar() != '\n');
-
-		if('m' == a)
-		{
-			printf("Command action\n");
-			printf("\ta\t挂断电话\n"); //CG
-			printf("\tb\t断开蓝牙免提\n"); //CD
-			printf("\tc\t连接蓝牙免提\n"); //CC
-			printf("\tm\t查看选项\n");
-			continue;
-		}
-		else if('a' == a)
-		{
-			strcpy(cmdbuf, "CG");
-			break;
-		}
-		else if('b' == a)
-		{
-			strcpy(cmdbuf, "CD");
-			break;
-		}
-		else if('c' == a)
-		{
-			strcpy(cmdbuf, "CC");
-			break;
-		}
-	}
+	printf("\t3\t连接蓝牙免提\n"); //CC
+	printf("\t4\t断开蓝牙免提\n"); //CD
+	printf("\t7\t挂断电话\n"); //CG
+	printf("\t10\t切换蓝牙声音\n"); //CO
 }
+
+/*
+*同步联系人
+*/
+void contact(char *buf)
+{
+	char buff[32];
+	int n = 0;
+	int m = 0;
+
+	if(0 == strncmp(buf+2, "0", 1))
+		printf("SIM\t");
+	else if(0 == strncmp(buf+2, "1", 1))
+		printf("phone\t");
+	else if(0 == strncmp(buf+2, "2", 1))
+		printf("呼出\t");
+	else if(0 == strncmp(buf+2, "3", 1))
+		printf("未接\t");
+	else if(0 == strncmp(buf+2, "4", 1))
+		printf("呼入\t");
+
+	memset(buff, 0, 32);
+	strncpy(buff, buf + 3, 2);
+	n = atoi(buff);
+	debug_inf("n = %d\n", n);
+
+	memset(buff, 0, 32);
+	strncpy(buff, buf + 7, n);
+	printf("%-16s\t", buff);
+
+	memset(buff, 0, 32);
+	strncpy(buff, buf + 5, 2);
+	m = atoi(buff);
+	debug_inf("m = %d\n", m);
+
+	memset(buff, 0, 32);
+	strncpy(buff, buf + 7 + n, m);
+	printf("%s\n", buff);
+}
+

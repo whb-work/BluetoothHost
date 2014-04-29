@@ -18,6 +18,8 @@ void mx(const char *buf);
 int main(int argc, char const *argv[])
 {
 	int fd = -1;
+	FILE *fs;
+	cmd_inf p[CMD_NO];
 	char rbuf[SIZE] = {'\0'}; //read buf
 	char wbuf[SIZE] = {'\0'}; //write buf
 	char buf[SIZE] = {'\0'}; //write buf
@@ -27,6 +29,7 @@ int main(int argc, char const *argv[])
 	int pipe_fd[2];
 	pid_t pid;
 	int n;
+	int cmd_no = -1;
 	struct serial_property *sp;
 	fd_set fds;
 	struct timeval tv = {0, 100};
@@ -53,7 +56,7 @@ int main(int argc, char const *argv[])
 		else if((strcmp(argv[1], "-?")) == 0 || \
 			(strcmp(argv[1], "--help")) == 0)
 		{
-			if((fd = open("../blue_host_help.txt", O_RDONLY)) < 0)
+			if((fd = open("blue_host_help.txt", O_RDONLY)) < 0)
 			{
 				perror("open error");
 				return -1;
@@ -139,7 +142,25 @@ int main(int argc, char const *argv[])
 	{
 		close(pipe_fd[1]); // close write pipe
 
-		printf("提示: 输入[z]进入键盘模式\n");
+		if((fs = fopen("cmd_inf.txt", "r")) == NULL)
+		{
+			perror("open error");
+			return -1;
+		}
+
+		for(n = 0; n < CMD_NO; n++)
+		{
+			memset(buf, 0 , SIZE);
+			if(fgets(buf, 64, fs) > 0)
+			{
+				sscanf(buf, "%d%s%s", &p[n].id, p[n].cmd, p[n].cmd_inf);
+				//debug_inf("buf |%s\n", buf);
+			}
+		}
+
+		fclose(fs);
+
+		printf("提示: 输入[0]进入键盘模式\n");
 
 		while(1)
 		{
@@ -163,6 +184,7 @@ int main(int argc, char const *argv[])
 			}
 			else if(n > 0)
 			{
+				cmd_no = -1;
 				if(FD_ISSET(pipe_fd[0], &fds))
 				{
 					memset(buf, 0, SIZE);
@@ -181,29 +203,119 @@ int main(int argc, char const *argv[])
 					if(0 == strncmp(buf, "IC", 2))
 					{
 						debug_inf("提示: 有电话呼出\n");
-						phone_out(buf, cmdbuf);
+						phone_out(buf);
 					}
 
 					if(0 == strncmp(buf, "ID", 2))
 					{
 						debug_inf("提示: 有电话呼入\n");
-						phone_out(buf, cmdbuf);
+						phone_in(buf);
 					}
 
 					if(0 == strncmp(buf, "IR", 2))
 					{
 						debug_inf("提示: 当前通话\n");
-						call(buf, cmdbuf);
+						call(buf);
+					}
+
+					if(0 == strncmp(buf, "PB", 2))
+					{
+						debug_inf("提示: 当前通话\n");
+						contact(buf);
+					}
+
+					if(0 == strncmp(buf, "PC", 2))
+					{
+						printf("提示: 同步联系人完成\n");
 					}
 				}
 				else if(FD_ISSET(0, &fds))
 				{
-					if('z' == getchar())
+					if(scanf("%d", &cmd_no) < 0)
+					{
+						perror("scanf error");
+						return -1;
+					}
+
+					if(0 == cmd_no)
 					{
 						printf("========= 进入键盘模式 =========\n");
 						while(getchar() != '\n');
 						task_options(cmdbuf);
 						debug_inf("|| cmdbuf: %s\n", cmdbuf);
+					}
+					else if(cmd_no < CMD_NO + 1 && cmd_no > 0)
+					{
+						strncpy(cmdbuf, p[cmd_no - 1].cmd, 2);
+						if(cmd_no == 12)
+						{
+							printf("please input number: ");
+							memset(buf, 0, SIZE);
+							scanf("%s", buf);
+							while(getchar() != '\n');
+							strncat(cmdbuf, buf, strlen(buf));
+						}
+						else if(cmd_no == 46)
+						{
+							memset(buf, 0, SIZE);
+							printf("please input target: ");
+							scanf("%s", buf);
+							while(getchar() != '\n');
+
+							strncat(cmdbuf, buf, 1);
+							strncat(cmdbuf, ",", 1);
+
+							memset(buf, 0, SIZE);
+							printf("please input offset: ");
+							scanf("%s", buf);
+							while(getchar() != '\n');
+							strncat(cmdbuf, buf, strlen(buf));
+							strncat(cmdbuf, ",", 1);
+
+							memset(buf, 0, SIZE);
+							printf("please input count: ");
+							scanf("%s", buf);
+							while(getchar() != '\n');
+							strncat(cmdbuf, buf, strlen(buf));
+						}
+						if(cmd_no == 61)
+						{
+							memset(buf, 0, 128);
+							printf("please input Name(m = null): ");
+							scanf("%s", buf);
+							while(getchar() != '\n');
+							if(buf[0] != 'm')
+							{
+								strncat(cmdbuf, buf, strlen(buf));
+							}
+						}
+						else if(cmd_no == 62)
+						{
+							memset(buf, 0, 128);
+							printf("please input PIN(m = null): ");
+							scanf("%s", buf);
+							while(getchar() != '\n');
+							if(buf[0] != 'm')
+							{
+								strncat(cmdbuf, buf, strlen(buf));
+							}
+						}
+						else if(cmd_no == 71)
+						{
+							memset(buf, 0, 128);
+							printf("please input Vol(m = null): ");
+							scanf("%s", buf);
+							while(getchar() != '\n');
+							if(buf[0] != 'm')
+							{
+								strncat(cmdbuf, buf, strlen(buf));
+							}
+						}
+					}
+					else
+					{
+						printf("Input error, please continue\n");
+						continue;
 					}
 				}
 			}
@@ -216,7 +328,7 @@ int main(int argc, char const *argv[])
 			cmdlean = strlen(wbuf);
 			wbuf[cmdlean] = '\r';
 			wbuf[cmdlean + 1] = '\n';
-			printf("CMD: %s\n", wbuf);
+			//printf("CMD: %s\n", wbuf);
 
 			if(serial_write(fd, wbuf, cmdlean + 2) < 0)
 			{
@@ -245,7 +357,8 @@ int main(int argc, char const *argv[])
 			}
 
 			rbuf[rcount -1] = '\0'; //去掉换行符
-			printf("===>rcount = %d, %s\n", rcount, rbuf);
+			debug_inf("===>rcount = %d\n", rcount);
+			debug_inf("===>%s\n", rbuf);
 
 			if(strncmp(rbuf, "MX", 2) == 0) //测试
 			{
@@ -296,6 +409,25 @@ int main(int argc, char const *argv[])
 				}
 				usleep(200);
 			}
+
+			if(strncmp(rbuf, "PB", 2) == 0) //同步联系人
+			{
+				if(write(pipe_fd[1], rbuf, strlen(rbuf)) < 0)
+				{
+					perror("write error");
+					return -1;
+				}
+				usleep(200);
+			}
+			if(strncmp(rbuf, "PC", 2) == 0) //同步联系人完成
+			{
+				if(write(pipe_fd[1], rbuf, strlen(rbuf)) < 0)
+				{
+					perror("write error");
+					return -1;
+				}
+				usleep(200);
+			}
 		}
 	}
 
@@ -322,4 +454,3 @@ void mx(const char *buf)
 
 	printf("CMD = %s || INF = %s\n", cmd, buf + 2);
 }
-

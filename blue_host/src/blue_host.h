@@ -17,20 +17,20 @@
 #define SIZE 		128
 #define CMD_SIZE 	32
 
-#define CMD_TYPE	5
-#define TYPE_NO		15
+#define CMD_NO	75
 
-#define HFP_NO		12
+#define HFP_NO		14
 #define A2DP_NO		8
 #define BTC_NO		15
 #define PHONE_NO	2
 #define OTHER_NO	11
 
-#define HFP_TYPE	0
-#define A2DP_TYPE	1
-#define BTC_TYPE	2
-#define PHONE_TYPE 	3
-#define OTHER_TYPE	4
+#define BASIC	0
+#define HFP_BASIC	BASIC + 0
+#define A2DP_BASIC	BASIC + 15
+#define BTC_BASIC	BASIC + 30
+#define PHONE_BASIC	BASIC + 45
+#define OTHER_BASIC	BASIC + 60
 
 //char *app_name = "blue_host"; //Applications name
 /*
@@ -61,7 +61,6 @@ typedef struct serial_property
 typedef struct cmd_inf
 {
 	int id;
-	int flag;
 	char cmd[3];
 	char cmd_inf[64];
 }cmd_inf;
@@ -101,16 +100,21 @@ int other(char *buf);
 /*
 *电话呼入
 */
-void phone_in(char *buf, char *cmdbuf);
+void phone_in(char *buf);
 
 /*
 *电话呼出
 */
-void phone_out(char *buf, char *cmdbuf);
+void phone_out(char *buf);
 
 /*
 *当前通话
 */
-void call(char *buf, char *cmdbuf);
+void call(char *buf);
+
+/*
+*同步联系人
+*/
+void contact(char *buf);
 
 #endif /* BLUE_HOST_H_ */
