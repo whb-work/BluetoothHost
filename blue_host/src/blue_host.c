@@ -168,7 +168,7 @@ int hfp(char *buf)
 	char buff[128];
 	cmd_inf p[CMD_NO];
 
-	if((fd = fopen("cmd_inf.txt", "r")) == NULL)
+	if((fd = fopen("../cmd_inf.txt", "r")) == NULL)
 	{
 		perror("open error");
 		return -1;
@@ -250,7 +250,7 @@ int a2dp(char *buf)
 	char buff[128];
 	cmd_inf p[CMD_NO];
 
-	if((fd = fopen("cmd_inf.txt", "r")) == NULL)
+	if((fd = fopen("../cmd_inf.txt", "r")) == NULL)
 	{
 		perror("open error");
 		return -1;
@@ -323,7 +323,7 @@ int phone(char *buf)
 	char buff[128];
 	cmd_inf p[CMD_NO];
 
-	if((fd = fopen("cmd_inf.txt", "r")) == NULL)
+	if((fd = fopen("../cmd_inf.txt", "r")) == NULL)
 	{
 		perror("open error");
 		return -1;
@@ -438,7 +438,7 @@ int other(char *buf)
 	char s[10];
 	char buff[128];
 
-	if((fd = fopen("cmd_inf.txt", "r")) == NULL)
+	if((fd = fopen("../cmd_inf.txt", "r")) == NULL)
 	{
 		perror("open error");
 		return -1;

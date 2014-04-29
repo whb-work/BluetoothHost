@@ -56,7 +56,7 @@ int main(int argc, char const *argv[])
 		else if((strcmp(argv[1], "-?")) == 0 || \
 			(strcmp(argv[1], "--help")) == 0)
 		{
-			if((fd = open("blue_host_help.txt", O_RDONLY)) < 0)
+			if((fd = open("../blue_host_help.txt", O_RDONLY)) < 0)
 			{
 				perror("open error");
 				return -1;
@@ -142,7 +142,7 @@ int main(int argc, char const *argv[])
 	{
 		close(pipe_fd[1]); // close write pipe
 
-		if((fs = fopen("cmd_inf.txt", "r")) == NULL)
+		if((fs = fopen("../cmd_inf.txt", "r")) == NULL)
 		{
 			perror("open error");
 			return -1;
